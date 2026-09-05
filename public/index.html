@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocMind AI - Document Intelligence &amp; Q&amp;A</title>
+  <meta name="description"
+    content="AI-powered document intelligence platform with vector search, context-aware Q&amp;A, and smart summarization.">
+  <link rel="icon" type="image/png" href="icons/icon-32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="gemini-theme">
+
+  <div class="gemini-app" id="geminiApp">
+
+    <!-- ── LEFT COLLAPSIBLE SIDEBAR ── -->
+    <aside class="gemini-sidebar" id="geminiSidebar">
+
+      <!-- Top Row: Hamburger & New Chat -->
+      <div class="sidebar-top">
+        <button class="icon-btn sidebar-collapse-btn" id="sidebarToggleBtn" title="Collapse sidebar"
+          aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <button class="new-chat-btn" id="newChatBtn" title="Start a fresh chat session">
+          <svg class="gemini-sparkle-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z" />
+          </svg>
+          <span>New chat</span>
+        </button>
+      </div>
+
+      <!-- Quick Document Upload Box -->
+      <div class="sidebar-upload-box">
+        <div class="gemini-dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.md,.csv,.json" hidden>
+          <div class="dropzone-content">
+            <div class="dropzone-icon-wrap">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="dropzone-text-group">
+              <span class="dropzone-main-text">Upload Document</span>
+              <span class="dropzone-hint">PDF, DOCX, TXT (Max 25MB)</span>
+            </div>
+            <label class="btn-browse-pill" for="fileInput">
+              <i class="fa-solid fa-plus"></i> Browse
+            </label>
+          </div>
+
+          <!-- Upload Progress -->
+          <div class="upload-progress-container hidden" id="uploadProgressContainer">
+            <div class="upload-progress-bar" id="uploadProgressBar"></div>
+          </div>
+        </div>
+
+        <!-- Alert Toast for Upload Status -->
+        <div class="upload-alert hidden" id="uploadAlert"></div>
+      </div>
+
+      <!-- Recent Documents Section -->
+      <div class="sidebar-scrollable-section">
+        <div class="sidebar-section-header">
+          <span class="section-heading">Recent Documents</span>
+          <span class="docs-count-pill" id="docsCountBadge">0</span>
+        </div>
+
+        <div class="docs-list" id="docsList">
+          <div class="docs-empty">
+            <i class="fa-regular fa-folder-open"></i>
+            <p>No documents uploaded yet</p>
+            <span>Upload a file to start chatting</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat History Section -->
+      <div class="sidebar-scrollable-section sidebar-history-section">
+        <div class="sidebar-section-header">
+          <span class="section-heading"><i class="fa-solid fa-clock-rotate-left"></i> Chat History</span>
+          <div style="display:flex;gap:4px;align-items:center">
+            <span class="docs-count-pill" id="historyCountBadge">0</span>
+            <button class="icon-btn history-manage-btn" id="openHistoryManagerBtn" title="Manage all history"
+              style="font-size:11px;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:var(--text-secondary);cursor:pointer">
+              <i class="fa-solid fa-list"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="history-sessions-list" id="historySessionsList">
+          <div class="docs-empty" id="historyEmptyState">
+            <i class="fa-regular fa-comments"></i>
+            <p>No history yet</p>
+            <span>Your chats will appear here</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Bottom Utilities -->
+      <div class="sidebar-footer">
+        <button class="sidebar-footer-btn" id="viewTextBtn" disabled title="View Extracted Document Text">
+          <i class="fa-regular fa-file-lines"></i>
+          <span>Extracted Text</span>
+        </button>
+
+        <button class="sidebar-footer-btn" id="openHistoryManagerBtn2" title="Chat History Manager">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>History</span>
+        </button>
+
+        <button class="sidebar-footer-btn" id="openSettingsBtn" title="AI Settings &amp; Models">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Settings</span>
+        </button>
+
+        <!-- AI Status Badge / Switcher -->
+        <div class="sidebar-ai-pill" id="aiStatusBtn" title="AI Engine Status">
+          <span class="status-indicator-dot"></span>
+          <span class="ai-status-label" id="aiStatusText">AI Checking…</span>
+        </div>
+
+        <!-- User Profile Pill -->
+        <button class="sidebar-user-pill" id="userAuthBtn" title="User Account">
+          <div class="user-avatar-circle">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="user-info-text">
+            <span class="user-name" id="userNameText">Guest User</span>
+            <span class="user-role">DocMind Free</span>
+          </div>
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- ── MAIN CONTENT AREA ── -->
+    <div class="gemini-main-viewport">
+
+      <!-- ── TOP BAR (GEMINI STYLE) ── -->
+      <header class="gemini-topbar">
+        <div class="topbar-left">
+          <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" title="Toggle menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <div class="brand-badge">
+            <div class="gemini-sparkle-logo">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L14.4 8.6L21 11L14.4 13.4L12 20L9.6 13.4L3 11L9.6 8.6L12 2Z" />
+              </svg>
+            </div>
+            <span class="brand-text">DocMind</span>
+            <span class="brand-edition">Gemini</span>
+          </div>
+
+          <!-- Active Document Chip -->
+          <div class="active-doc-chip" id="activeDocBadge" title="Active Document for RAG context">
+            <i class="fa-regular fa-file-lines"></i>
+            <span class="active-doc-title" id="activeDocName">No document active</span>
+            <button class="btn-clear-active-doc" id="clearActiveDocBtn" title="Detach active document">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Center: Tab Switcher (Chat vs Summarizer) -->
+        <div class="topbar-tabs">
+          <button class="nav-tab-pill active" id="tabQaBtn" data-tab="tab-qa">
+            <i class="fa-regular fa-comment-dots"></i>
+            <span>Chat &amp; Q&amp;A</span>
+          </button>
+          <button class="nav-tab-pill" id="tabSummarizerBtn" data-tab="tab-summarizer">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Summarizer</span>
+          </button>
+        </div>
+
+        <!-- Right: Model Badge & Profile Trigger -->
+        <div class="topbar-right">
+          <div class="model-badge-chip" id="topModelBadge" title="Current AI Engine">
+            <span class="sparkle-dot"></span>
+            <span id="topModelName">Ollama 3.2</span>
+          </div>
+
+          <button class="topbar-avatar-btn" id="topbarAvatarBtn" title="Account profile">
+            <div class="avatar-ring">
+              <i class="fa-solid fa-user"></i>
+            </div>
+          </button>
+        </div>
+      </header>
+
+      <!-- ── TAB 1: GEMINI CHAT & Q&A ── -->
+      <main class="tab-pane active" id="tab-qa">
+        <div class="gemini-chat-container">
+
+          <!-- ── GEMINI WELCOME SCREEN (When no messages) ── -->
+          <div class="gemini-welcome-screen" id="welcomeScreen">
+            <div class="welcome-center-wrap">
+
+              <!-- Shimmering Gemini Greeting -->
+              <div class="gemini-greeting">
+                <h1 class="greeting-gradient-text">Hello, <span id="welcomeUserName">Friend</span></h1>
+                <p class="greeting-subtitle">How can I help you analyze your documents today?</p>
+              </div>
+
+              <!-- Gemini Suggestion Prompt Cards -->
+              <div class="gemini-cards-grid">
+
+                <button class="gemini-card chip-btn"
+                  data-msg="Summarize the key insights, objectives, and main takeaways of this document.">
+                  <div class="card-text">
+                    <strong>Summarize key insights</strong>
+                    <span>Extract the primary takeaways and objectives</span>
+                  </div>
+                  <div class="card-icon">
+                    <i class="fa-solid fa-star"></i>
+                  </div>
+                </button>
+
+                <button class="gemini-card chip-btn"
+                  data-msg="What are all the specific figures, metrics, percentages, and dates mentioned?">
+                  <div class="card-text">
+                    <strong>Extract metrics &amp; dates</strong>
+                    <span>Find figures, percentages, dates, and tables</span>
+                  </div>
+                  <div class="card-icon">
+                    <i class="fa-solid fa-chart-pie"></i>
+                  </div>
+                </button>
+
+                <button class="gemini-card chip-btn"
+                  data-msg="What are the critical challenges, limitations, or risks highlighted?">
+                  <div class="card-text">
+                    <strong>Identify risks &amp; challenges</strong>
+                    <span>Pinpoint limitations, obstacles, and risk factors</span>
+                  </div>
+                  <div class="card-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                  </div>
+                </button>
+
+                <button class="gemini-card chip-btn"
+                  data-msg="Draft an executive briefing highlighting actionable recommendations.">
+                  <div class="card-text">
+                    <strong>Executive briefing</strong>
+                    <span>Formulate high-level actionable next steps</span>
+                  </div>
+                  <div class="card-icon">
+                    <i class="fa-solid fa-briefcase"></i>
+                  </div>
+                </button>
+
+              </div>
+
+              <!-- Badges Info -->
+              <div class="gemini-features-row">
+                <span class="feature-tag"><i class="fa-solid fa-bolt"></i> Vector RAG Retrieval</span>
+                <span class="feature-tag"><i class="fa-solid fa-microchip"></i> Local Ollama &amp; Gemini 1.5</span>
+                <span class="feature-tag"><i class="fa-solid fa-quote-left"></i> Source Grounding</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── MESSAGES STREAM ── -->
+          <div class="gemini-messages-stream hidden" id="messagesStream"></div>
+
+          <!-- ── GEMINI FLOATING PROMPT CAPSULE (BOTTOM) ── -->
+          <div class="gemini-prompt-outer">
+            <div class="gemini-prompt-capsule" id="chatPromptCapsule">
+
+              <!-- Plus / Attachment Button -->
+              <button class="prompt-attach-btn" id="promptAttachBtn" title="Attach / Upload Document"
+                aria-label="Attach Document">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+
+              <!-- Prompt Input Area -->
+              <div class="prompt-input-area">
+                <textarea id="chatInput" placeholder="Ask DocMind anything about your document..." rows="1"
+                  autocomplete="off"></textarea>
+              </div>
+
+              <!-- Actions on Right -->
+              <div class="prompt-actions-right">
+                <button class="btn-clear-history" id="clearChatBtn" title="Clear Chat History">
+                  <i class="fa-regular fa-trash-can"></i>
+                </button>
+                <button class="prompt-send-btn" id="sendBtn" disabled title="Send question" aria-label="Send">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Disclaimer Footer -->
+            <div class="gemini-disclaimer">
+              <span>DocMind AI can make mistakes. Verify important context from source documents.</span>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <!-- ── TAB 2: TEXT SUMMARIZER (GEMINI CANVAS STYLE) ── -->
+      <main class="tab-pane" id="tab-summarizer">
+        <div class="gemini-summarizer-container">
+
+          <div class="summarizer-surface-card">
+
+            <div class="summarizer-header">
+              <div class="summarizer-title-wrap">
+                <div class="summarizer-icon">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div>
+                  <h2>Smart Document Summarizer</h2>
+                  <p>Distill dense documents or text into clear, structured executive summaries.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mode Selector Cards -->
+            <div class="summary-modes-deck">
+              <button class="gemini-mode-card active" data-mode="bullets">
+                <div class="mode-icon-circle"><i class="fa-solid fa-list-check"></i></div>
+                <div class="mode-meta">
+                  <h4>Bullet Points</h4>
+                  <p>Key highlights &amp; takeaways in crisp bullets</p>
+                </div>
+              </button>
+
+              <button class="gemini-mode-card" data-mode="tldr">
+                <div class="mode-icon-circle"><i class="fa-solid fa-bolt"></i></div>
+                <div class="mode-meta">
+                  <h4>TL;DR</h4>
+                  <p>Fast 2-sentence rapid summary</p>
+                </div>
+              </button>
+
+              <button class="gemini-mode-card" data-mode="executive">
+                <div class="mode-icon-circle"><i class="fa-solid fa-briefcase"></i></div>
+                <div class="mode-meta">
+                  <h4>Executive</h4>
+                  <p>Comprehensive high-level briefing</p>
+                </div>
+              </button>
+
+              <button class="gemini-mode-card" data-mode="detailed">
+                <div class="mode-icon-circle"><i class="fa-solid fa-file-contract"></i></div>
+                <div class="mode-meta">
+                  <h4>Detailed</h4>
+                  <p>Deep sectional breakdown &amp; analysis</p>
+                </div>
+              </button>
+            </div>
+
+            <!-- Source Switcher -->
+            <div class="summarizer-source-selector">
+              <label class="source-radio-pill">
+                <input type="radio" name="sumSource" value="activeDoc" checked>
+                <span>Summarize Active Document: <strong id="sumActiveDocName">None</strong></span>
+              </label>
+              <label class="source-radio-pill">
+                <input type="radio" name="sumSource" value="customText">
+                <span>Paste Custom Text</span>
+              </label>
+            </div>
+
+            <!-- Custom Text Input -->
+            <div class="custom-text-box hidden" id="customTextBox">
+              <textarea id="customTextInput"
+                placeholder="Paste your custom text here to generate summary (minimum 20 characters)..."
+                rows="6"></textarea>
+            </div>
+
+            <!-- Summarize Button -->
+            <div class="summarizer-submit-row">
+              <button class="btn-gemini-gradient" id="generateSummaryBtn">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Generate Summary</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Summary Output Surface -->
+          <div class="gemini-summary-result hidden" id="summaryOutputCard">
+            <div class="result-header">
+              <div class="result-title">
+                <div class="sparkle-gemini-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L14.4 8.6L21 11L14.4 13.4L12 20L9.6 13.4L3 11L9.6 8.6L12 2Z" />
+                  </svg>
+                </div>
+                <span>Generated Summary</span>
+                <span class="engine-badge-pill" id="summaryEngineBadge">Ollama</span>
+              </div>
+
+              <div class="result-actions">
+                <button class="btn-copy-action" id="copySummaryBtn" title="Copy to clipboard">
+                  <i class="fa-regular fa-copy"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="result-body markdown-body" id="summaryOutputBody"></div>
+          </div>
+
+        </div>
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- ── USER AUTH MODAL (GEMINI DARK THEME) ── -->
+  <div class="modal-backdrop hidden" id="authModal">
+    <div class="gemini-modal modal-md">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge"><i class="fa-solid fa-user-lock"></i></div>
+          <h3 id="authModalTitle">Account Authentication</h3>
+        </div>
+        <button class="btn-close-modal" id="closeAuthBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="auth-segment-switch">
+          <button class="segment-btn active" id="tabLoginBtn">Sign In</button>
+          <button class="segment-btn" id="tabRegisterBtn">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form">
+          <div class="gemini-field">
+            <label>Email Address</label>
+            <div class="input-icon-wrapper">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="loginEmail" placeholder="name@example.com" required>
+            </div>
+          </div>
+          <div class="gemini-field">
+            <label>Password</label>
+            <div class="input-icon-wrapper">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="loginPassword" placeholder="••••••••" required>
+            </div>
+          </div>
+          <div class="auth-error hidden" id="loginError"></div>
+          <button type="submit" class="btn-gemini-gradient btn-full">Sign In</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="auth-form hidden">
+          <div class="gemini-field">
+            <label>Full Name</label>
+            <div class="input-icon-wrapper">
+              <i class="fa-regular fa-user"></i>
+              <input type="text" id="regName" placeholder="Alex Morgan" required>
+            </div>
+          </div>
+          <div class="gemini-field">
+            <label>Email Address</label>
+            <div class="input-icon-wrapper">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="regEmail" placeholder="name@example.com" required>
+            </div>
+          </div>
+          <div class="gemini-field">
+            <label>Password</label>
+            <div class="input-icon-wrapper">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="regPassword" placeholder="Min 6 characters" minlength="6" required>
+            </div>
+          </div>
+          <div class="auth-error hidden" id="regError"></div>
+          <button type="submit" class="btn-gemini-gradient btn-full">Create Account</button>
+        </form>
+
+        <!-- Logged In View -->
+        <div class="auth-profile-card hidden" id="authProfileBox">
+          <div class="profile-avatar-big">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+          <div class="profile-meta-text">
+            <span>Signed in as</span>
+            <strong id="profileEmail">user@example.com</strong>
+          </div>
+          <button class="btn-gemini-outline btn-full" id="logoutBtn">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI SETTINGS MODAL (GEMINI DARK THEME) ── -->
+  <div class="modal-backdrop hidden" id="settingsModal">
+    <div class="gemini-modal modal-md">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge"><i class="fa-solid fa-sliders"></i></div>
+          <h3>AI Models &amp; Configuration</h3>
+        </div>
+        <button class="btn-close-modal" id="closeSettingsBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="gemini-field">
+          <label>AI Provider</label>
+          <select id="providerSelect" class="gemini-select">
+            <option value="ollama">Local Ollama (Offline &amp; Free)</option>
+            <option value="gemini">Google Gemini API (Cloud Flash)</option>
+            <option value="local">Local Keyword Engine (Offline Fallback)</option>
+          </select>
+        </div>
+
+        <div class="provider-options" id="ollamaOptions">
+          <div class="gemini-field">
+            <label>Ollama Host URL</label>
+            <input type="text" id="ollamaHostInput" class="gemini-input" value="http://localhost:11434">
+          </div>
+
+          <div class="gemini-field">
+            <label>Active Model</label>
+            <select id="ollamaModelSelect" class="gemini-select">
+              <option value="llama3.2:3b">llama3.2:3b</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="provider-options hidden" id="geminiOptions">
+          <div class="gemini-field">
+            <label>Google Gemini API Key</label>
+            <input type="password" id="geminiApiKeyInput" class="gemini-input" placeholder="AIzaSy...">
+          </div>
+        </div>
+
+        <div class="settings-status-box" id="settingsStatusCard">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Checking connection status...
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-gemini-outline" id="testConnectionBtn">
+          <i class="fa-solid fa-rotate-right"></i> Test Connection
+        </button>
+        <button class="btn-gemini-gradient" id="saveSettingsBtn">
+          <i class="fa-solid fa-floppy-disk"></i> Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TEXT VIEWER MODAL ── -->
+  <div class="modal-backdrop hidden" id="textViewerModal">
+    <div class="gemini-modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge"><i class="fa-regular fa-file-lines"></i></div>
+          <h3 id="textViewerTitle">Document Extracted Text</h3>
+        </div>
+        <button class="btn-close-modal" id="closeTextViewerBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="text-viewer-toolbar">
+          <span class="stats-badge" id="textViewerStats">0 words</span>
+          <button class="btn-copy-action" id="copyExtractedTextBtn">
+            <i class="fa-regular fa-copy"></i>
+            <span>Copy Text</span>
+          </button>
+        </div>
+        <pre class="text-viewer-content" id="textViewerContent">Loading text...</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY MANAGER MODAL ── -->
+  <div class="modal-backdrop hidden" id="historyManagerModal">
+    <div class="gemini-modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <h3>Chat History</h3>
+        </div>
+        <button class="btn-close-modal" id="closeHistoryManagerBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 0;">
+        <!-- Toolbar -->
+        <div class="history-toolbar">
+          <div class="history-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="historySearchInput" class="history-search-input" placeholder="Search history…">
+          </div>
+          <div class="history-toolbar-actions">
+            <span class="history-total-badge" id="historyTotalBadge">0 sessions</span>
+            <button class="btn-danger-outline" id="clearAllHistoryBtn" title="Delete all sessions">
+              <i class="fa-solid fa-trash-can"></i> Clear All
+            </button>
+          </div>
+        </div>
+
+        <!-- Sessions Grid -->
+        <div class="history-sessions-grid" id="historyManagerGrid">
+          <div class="history-empty-state" id="historyManagerEmpty">
+            <i class="fa-regular fa-comments" style="font-size:2.5rem;opacity:0.3;margin-bottom:12px;"></i>
+            <p>No saved chat sessions yet.</p>
+            <span>Start a conversation and it will be saved here automatically.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
