@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocMind-AI — Comprehensive Project Documentation &amp; Technical Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #7c3aed;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --code-bg: #0f172a;
+      --code-text: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 40px 20px;
+    }
+
+    .doc-container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 50px 60px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    .doc-header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #eff6ff;
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .doc-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+
+    .print-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .print-btn:hover { background: var(--primary-dark); }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 36px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 24px;
+      margin-bottom: 10px;
+    }
+
+    p { margin-bottom: 14px; font-size: 15px; color: var(--text-muted); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 24px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    tr:hover td { background-color: #f8fafc; }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      margin: 16px 0 24px;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 18px 0;
+      font-size: 14.5px;
+    }
+
+    .callout strong { color: #1e3a8a; }
+
+    .faq-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .faq-q {
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .faq-a {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .doc-container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+      .print-btn { display: none; }
+      pre { page-break-inside: avoid; }
+      table { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="doc-container">
+
+    <header class="doc-header">
+      <div>
+        <div class="badge-pill"><i class="fa-solid fa-file-lines"></i> Official Technical Report &amp; Architecture Manual</div>
+        <h1>DocMind-AI</h1>
+        <p class="doc-subtitle">AI-Powered Document Intelligence, Semantic RAG Retrieval &amp; Smart Summarization</p>
+      </div>
+      <button class="print-btn" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> Print / Save as PDF
+      </button>
+    </header>
+
+    <section>
+      <h2><i class="fa-solid fa-circle-info"></i> 1. Executive Summary &amp; Purpose</h2>
+      <p><strong>DocMind-AI</strong> is an intelligent document interaction platform developed to eliminate information overload when analyzing dense documents (PDFs, Word documents, research papers, legal contracts, and reports).</p>
+      <p>Unlike conventional chatbots that hallucinate or leak confidential documents, DocMind-AI leverages <strong>Retrieval-Augmented Generation (RAG)</strong>. Documents are processed locally into semantic vector chunks. Queries retrieve the exact matching context using <em>Cosine Similarity</em>, allowing the AI to deliver answers grounded strictly in the source material with verifiable citations.</p>
+    </section>
+
+    <section>
+      <h2><i class="fa-solid fa-code"></i> 2. Languages &amp; Technologies Used</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th>Category</th>
+            <th>Role in DocMind-AI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>JavaScript (ES6+)</strong></td>
+            <td>Programming Language</td>
+            <td>Used across both frontend and backend for asynchronous promises and unified logic.</td>
+          </tr>
+          <tr>
+            <td><strong>Node.js</strong></td>
+            <td>Runtime Engine</td>
+            <td>Event-driven, high-performance asynchronous server runtime.</td>
+          </tr>
+          <tr>
+            <td><strong>Express.js (v4.21)</strong></td>
+            <td>Backend Framework</td>
+            <td>REST API routing, security middleware pipelines, and static file delivery.</td>
+          </tr>
+          <tr>
+            <td><strong>HTML5 &amp; CSS3</strong></td>
+            <td>Frontend Core</td>
+            <td>Semantic layout, responsive design, modern dark-mode glassmorphism, and ambient mesh glows.</td>
+          </tr>
+          <tr>
+            <td><strong>Ollama (Llama 3.2 3B)</strong></td>
+            <td>Local AI Engine</td>
+            <td>Runs open-weights LLMs entirely offline on the user's computer with zero cloud costs and 100% privacy.</td>
+          </tr>
+          <tr>
+            <td><strong>Google Gemini 1.5</strong></td>
+            <td>Cloud AI Fallback</td>
+            <td>High-speed cloud model accessed strictly through server-side secure proxies.</td>
+          </tr>
+          <tr>
+            <td><strong>pdf-parse &amp; mammoth</strong></td>
+            <td>Document Parsers</td>
+            <td>Binary extraction engines for extracting raw text from PDFs and Microsoft Word (.docx) files.</td>
+          </tr>
+          <tr>
+            <td><strong>bcryptjs &amp; jsonwebtoken</strong></td>
+            <td>Security Suite</td>
+            <td>Salted password hashing (10 rounds) and HMAC-SHA256 stateless authentication with role claims.</td>
+          </tr>
+          <tr>
+            <td><strong>Swagger / OpenAPI 3.0</strong></td>
+            <td>API Documentation</td>
+            <td>Interactive API testing dashboard live at <code>/api/docs</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>MongoDB &amp; Mongoose</strong></td>
+            <td>Database Layer</td>
+            <td>User registry with an automatic, resilient in-memory fallback if MongoDB is offline.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><i class="fa-solid fa-gears"></i> 3. System Architecture &amp; RAG Workflow</h2>
+      <div class="callout">
+        <strong>The 6-Phase RAG Pipeline:</strong>
+        <ol style="margin-left: 20px; margin-top: 8px;">
+          <li><strong>Document Ingestion:</strong> Multer receives PDF/DOCX files up to 25MB and writes them to disk.</li>
+          <li><strong>Text Extraction:</strong> <code>pdf-parse</code> extracts text from PDF byte streams; <code>mammoth</code> extracts text from Word XML nodes.</li>
+          <li><strong>Chunking with Overlap:</strong> Slices text into 800–1000 character windows with 100-character overlap to preserve sentence boundaries.</li>
+          <li><strong>Vectorization:</strong> Mathematical representation of chunks indexed in <code>VectorStore</code>.</li>
+          <li><strong>Cosine Similarity Retrieval:</strong> When user queries, DocMind finds top-K matching paragraphs.</li>
+          <li><strong>LLM Generation:</strong> Combines system instructions + retrieved context + user prompt to generate answers with source citations.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <h2><i class="fa-solid fa-shield-halved"></i> 4. Authentication vs. Authorization</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Authentication (AuthN)</th>
+            <th>Authorization (AuthZ)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Core Question</strong></td>
+            <td><em>"Who are you?"</em></td>
+            <td><em>"What are you allowed to do?"</em></td>
+          </tr>
+          <tr>
+            <td><strong>Validation</strong></td>
+            <td>Verifies identity (email, bcrypt password, JWT signature)</td>
+            <td>Verifies permissions (user vs admin role)</td>
+          </tr>
+          <tr>
+            <td><strong>HTTP Status Code</strong></td>
+            <td><code>401 Unauthorized</code></td>
+            <td><code>403 Forbidden</code></td>
+          </tr>
+          <tr>
+            <td><strong>Code Handler</strong></td>
+            <td><code>requireAuth</code> in <code>authMiddleware.js</code></td>
+            <td><code>requireRole('admin')</code> in <code>authMiddleware.js</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><i class="fa-solid fa-play"></i> 5. How to Setup and Run the Project</h2>
+      <pre><code># 1. Clone the repository
+git clone https://github.com/Hammadzafar64/DocMind-AI.git
+cd DocMind-AI
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment
+cp .env.example .env
+
+# 4. Run automated security test suite (10 scenarios)
+npm test
+
+# 5. Start the application
+npm start</code></pre>
+      <p>Open in browser:</p>
+      <ul>
+        <li><strong>Web Interface:</strong> <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+        <li><strong>Interactive Swagger Docs:</strong> <a href="http://localhost:3000/api/docs" target="_blank">http://localhost:3000/api/docs</a></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><i class="fa-solid fa-graduation-cap"></i> 6. Common Viva &amp; Supervisor Questions</h2>
+      <div class="faq-box">
+        <div class="faq-q">Q: Why use RAG instead of fine-tuning?</div>
+        <div class="faq-a">Fine-tuning is slow, expensive, and requires full model retraining when documents update. RAG indexes documents dynamically in seconds and grounds answers strictly in real context, preventing hallucinations.</div>
+      </div>
+      <div class="faq-box">
+        <div class="faq-q">Q: How are third-party API keys secured?</div>
+        <div class="faq-a">API keys (Google Gemini) are strictly stored in <code>.env</code> on the server. The client never sees raw keys; all LLM calls are server-side proxies, and settings endpoints return keys masked as <code>********</code>.</div>
+      </div>
+      <div class="faq-box">
+        <div class="faq-q">Q: What is the difference between 401 and 403 HTTP codes?</div>
+        <div class="faq-a">401 Unauthorized means the request lacks valid authentication credentials ("Who are you?"). 403 Forbidden means the identity is valid, but lacks administrative permission ("You are not allowed").</div>
+      </div>
+    </section>
+
+    <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); text-align: center;">
+      DocMind-AI &bull; Developed by Hammad Zafar &bull; Repository: <a href="https://github.com/Hammadzafar64/DocMind-AI" target="_blank">github.com/Hammadzafar64/DocMind-AI</a>
+    </footer>
+
+  </div>
+
+</body>
+</html>
