@@ -45,14 +45,18 @@ app.use('/api', chatRoutes);
 // Centralized Error Handling Middleware
 app.use(errorHandler);
 
-// Start Server
-app.listen(PORT, '0.0.0.0', async () => {
-  logger.info(`🚀 DocMind AI Server running at http://localhost:${PORT}`);
-  
-  const ollama = await ollamaService.checkOllamaStatus();
-  if (ollama.online) {
-    logger.info(`🟢 Connected to Ollama (${ollama.activeModel}) on ${ollamaService.getSettings().ollamaHost}`);
-  } else {
-    logger.warn(`⚠️ Ollama not detected. Local Extractive Engine active.`);
-  }
-});
+// Start Server if executed directly
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', async () => {
+    logger.info(`🚀 DocMind AI Server running at http://localhost:${PORT}`);
+    
+    const ollama = await ollamaService.checkOllamaStatus();
+    if (ollama.online) {
+      logger.info(`🟢 Connected to Ollama (${ollama.activeModel}) on ${ollamaService.getSettings().ollamaHost}`);
+    } else {
+      logger.warn(`⚠️ Ollama not detected. Local Extractive Engine active.`);
+    }
+  });
+}
+
+module.exports = app;
