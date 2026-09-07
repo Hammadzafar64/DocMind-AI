@@ -6,6 +6,7 @@ const { connectDB } = require('./src/config/db');
 const logger = require('./src/config/logger');
 const { apiLimiter } = require('./src/middlewares/rateLimiter');
 const errorHandler = require('./src/middlewares/errorHandler');
+const { setupSwagger } = require('./src/config/swagger');
 
 const authRoutes = require('./src/routes/authRoutes');
 const docRoutes = require('./src/routes/docRoutes');
@@ -42,6 +43,9 @@ app.use('/api', settingsRoutes);
 app.use('/api', docRoutes);
 app.use('/api', chatRoutes);
 
+// Interactive OpenAPI / Swagger Documentation
+setupSwagger(app);
+
 // Centralized Error Handling Middleware
 app.use(errorHandler);
 
@@ -49,6 +53,7 @@ app.use(errorHandler);
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', async () => {
     logger.info(`🚀 DocMind AI Server running at http://localhost:${PORT}`);
+    logger.info(`📚 Swagger API Docs available at http://localhost:${PORT}/api/docs`);
     
     const ollama = await ollamaService.checkOllamaStatus();
     if (ollama.online) {

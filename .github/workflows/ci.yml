@@ -1,0 +1,32 @@
+name: DocMind-AI CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Security & API Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Execute Security & Auth Test Suite
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: github_actions_ci_jwt_secret_2026
+          ADMIN_SECRET_KEY: docmind_admin_key_2026

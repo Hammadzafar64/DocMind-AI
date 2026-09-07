@@ -225,4 +225,5 @@ npm test
 npm start
 ```
 
-Open `http://localhost:3000` in your browser.
+- Web UI: Open `http://localhost:3000` in your browser.
+- Interactive OpenAPI / Swagger Docs: Open `http://localhost:3000/api/docs` to test all authentication, role-based authorization, and document endpoints live.
