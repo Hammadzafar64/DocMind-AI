@@ -49,6 +49,15 @@ setupSwagger(app);
 // Centralized Error Handling Middleware
 app.use(errorHandler);
 
+// Process Crash Guard (prevent server from exiting on unexpected background async errors)
+process.on('uncaughtException', (err) => {
+  logger.error(`🚨 Uncaught Exception: ${err.message}\n${err.stack || ''}`);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error(`🚨 Unhandled Rejection at: ${promise} reason: ${reason}`);
+});
+
 // Start Server if executed directly
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', async () => {
