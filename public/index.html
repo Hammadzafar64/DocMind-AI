@@ -184,8 +184,14 @@
           </button>
         </div>
 
-        <!-- Right: Model Badge & Profile Trigger -->
+        <!-- Right: Model Badge, API Docs & Profile Trigger -->
         <div class="topbar-right">
+          <a href="/api/docs" target="_blank" class="nav-api-docs-pill" title="Swagger OpenAPI Documentation">
+            <i class="fa-solid fa-code"></i>
+            <span>API Docs</span>
+            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px; opacity: 0.7;"></i>
+          </a>
+
           <div class="model-badge-chip" id="topModelBadge" title="Current AI Engine">
             <span class="sparkle-dot"></span>
             <span id="topModelName">Ollama 3.2</span>
@@ -211,6 +217,33 @@
               <div class="gemini-greeting">
                 <h1 class="greeting-gradient-text">Hello, <span id="welcomeUserName">Friend</span></h1>
                 <p class="greeting-subtitle">How can I help you analyze your documents today?</p>
+              </div>
+
+              <!-- 3-Step Guided Workflow for Intuitive Experience -->
+              <div class="guided-steps-banner">
+                <div class="guided-step">
+                  <div class="step-num">1</div>
+                  <div class="step-info">
+                    <strong>Upload Document</strong>
+                    <span>PDF, Word (.docx), or TXT</span>
+                  </div>
+                </div>
+                <div class="guided-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="guided-step">
+                  <div class="step-num">2</div>
+                  <div class="step-info">
+                    <strong>Ask Anything</strong>
+                    <span>Semantic vector RAG retrieval</span>
+                  </div>
+                </div>
+                <div class="guided-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="guided-step">
+                  <div class="step-num">3</div>
+                  <div class="step-info">
+                    <strong>Verified Answers</strong>
+                    <span>Grounded with source citations</span>
+                  </div>
+                </div>
               </div>
 
               <!-- Gemini Suggestion Prompt Cards -->
@@ -487,6 +520,13 @@
               <input type="password" id="regPassword" placeholder="Min 6 characters" minlength="6" required>
             </div>
           </div>
+          <div class="gemini-field">
+            <label>Admin Secret Key <span style="font-size:11px;color:var(--text-dim)">(Optional for Admin Access)</span></label>
+            <div class="input-icon-wrapper">
+              <i class="fa-solid fa-key"></i>
+              <input type="password" id="regAdminSecret" placeholder="docmind_admin_key_2026">
+            </div>
+          </div>
           <div class="auth-error hidden" id="regError"></div>
           <button type="submit" class="btn-gemini-gradient btn-full">Create Account</button>
         </form>
@@ -499,7 +539,13 @@
           <div class="profile-meta-text">
             <span>Signed in as</span>
             <strong id="profileEmail">user@example.com</strong>
+            <div class="profile-role-badge" id="profileRoleBadge">
+              <i class="fa-solid fa-user-shield"></i> <span id="profileRoleText">Standard User</span>
+            </div>
           </div>
+          <button class="btn-gemini-gradient btn-full hidden" id="openAdminConsoleBtn" style="margin-bottom: 10px;">
+            <i class="fa-solid fa-gauge-high"></i> Open Admin Console
+          </button>
           <button class="btn-gemini-outline btn-full" id="logoutBtn">
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
           </button>
@@ -624,6 +670,72 @@
             <span>Start a conversation and it will be saved here automatically.</span>
           </div>
         </div>
+      </div>
+    </div>
+  <!-- ── ADMIN CONSOLE MODAL (RBAC) ── -->
+  <div class="modal-backdrop hidden" id="adminDashboardModal">
+    <div class="gemini-modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge" style="background: rgba(234, 179, 8, 0.15); color: #eab308;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3>DocMind Admin Console</h3>
+            <span style="font-size:12px;color:var(--text-dim)">System health, user metrics &amp; RBAC governance</span>
+          </div>
+        </div>
+        <button class="btn-close-modal" id="closeAdminModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Admin Stats Grid -->
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card">
+            <span class="stat-label">Active Database</span>
+            <strong class="stat-value" id="adminStatDb">Checking...</strong>
+          </div>
+          <div class="admin-stat-card">
+            <span class="stat-label">Total Users</span>
+            <strong class="stat-value" id="adminStatUsers">0</strong>
+          </div>
+          <div class="admin-stat-card">
+            <span class="stat-label">Your Admin Role</span>
+            <strong class="stat-value" style="color:#eab308">Admin (Verified)</strong>
+          </div>
+          <div class="admin-stat-card">
+            <span class="stat-label">Environment</span>
+            <strong class="stat-value" id="adminStatEnv">development</strong>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div style="margin-top:20px;">
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--text-primary);">
+            <i class="fa-solid fa-users"></i> Registered System Accounts
+          </h4>
+          <div class="admin-users-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody">
+                <tr><td colspan="4" style="text-align:center;color:var(--text-dim)">Loading user registry...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-gemini-outline" id="refreshAdminDataBtn">
+          <i class="fa-solid fa-rotate-right"></i> Refresh Telemetry
+        </button>
       </div>
     </div>
   </div>

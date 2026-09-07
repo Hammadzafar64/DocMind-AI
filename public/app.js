@@ -234,9 +234,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Admin Console Elements
+  const regAdminSecret      = document.getElementById('regAdminSecret');
+  const profileRoleBadge    = document.getElementById('profileRoleBadge');
+  const profileRoleText     = document.getElementById('profileRoleText');
+  const openAdminConsoleBtn = document.getElementById('openAdminConsoleBtn');
+  const adminDashboardModal = document.getElementById('adminDashboardModal');
+  const closeAdminModalBtn  = document.getElementById('closeAdminModalBtn');
+  const refreshAdminDataBtn = document.getElementById('refreshAdminDataBtn');
+  const adminStatDb         = document.getElementById('adminStatDb');
+  const adminStatUsers      = document.getElementById('adminStatUsers');
+  const adminStatEnv        = document.getElementById('adminStatEnv');
+  const adminUsersTableBody = document.getElementById('adminUsersTableBody');
+
   function setGuestUserUI() {
     userNameText.textContent = 'Guest User';
     if (welcomeUserName) welcomeUserName.textContent = 'Friend';
+    const userRoleEl = document.querySelector('.sidebar-user-pill .user-role');
+    if (userRoleEl) userRoleEl.textContent = 'DocMind Free';
   }
 
   function openAuthModal() {
@@ -246,6 +261,25 @@ document.addEventListener('DOMContentLoaded', () => {
       registerForm.classList.add('hidden');
       authProfileBox.classList.remove('hidden');
       profileEmail.textContent = state.currentUser.email;
+
+      const isAdmin = state.currentUser.role === 'admin';
+      if (profileRoleBadge && profileRoleText) {
+        if (isAdmin) {
+          profileRoleBadge.classList.add('admin-role');
+          profileRoleText.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Administrator';
+        } else {
+          profileRoleBadge.classList.remove('admin-role');
+          profileRoleText.innerHTML = '<i class="fa-solid fa-user-shield"></i> Standard User';
+        }
+      }
+
+      if (openAdminConsoleBtn) {
+        if (isAdmin) {
+          openAdminConsoleBtn.classList.remove('hidden');
+        } else {
+          openAdminConsoleBtn.classList.add('hidden');
+        }
+      }
     } else {
       authProfileBox.classList.add('hidden');
       showLoginForm();
@@ -291,6 +325,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = data.user.name || data.user.email.split('@')[0];
         userNameText.textContent = name;
         if (welcomeUserName) welcomeUserName.textContent = name;
+        
+        const userRoleEl = document.querySelector('.sidebar-user-pill .user-role');
+        if (userRoleEl) {
+          userRoleEl.textContent = data.user.role === 'admin' ? 'Administrator 👑' : 'Standard User';
+        }
+
         authModal.classList.add('hidden');
         await fetchHistorySessions();
       } else {
@@ -307,10 +347,19 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     regError.classList.add('hidden');
     try {
+      const payload = {
+        name: regName.value,
+        email: regEmail.value,
+        password: regPassword.value
+      };
+      if (regAdminSecret && regAdminSecret.value.trim()) {
+        payload.adminSecret = regAdminSecret.value.trim();
+      }
+
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: regName.value, email: regEmail.value, password: regPassword.value })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -319,6 +368,12 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('docmind_token', data.token);
         userNameText.textContent = data.user.name;
         if (welcomeUserName) welcomeUserName.textContent = data.user.name;
+
+        const userRoleEl = document.querySelector('.sidebar-user-pill .user-role');
+        if (userRoleEl) {
+          userRoleEl.textContent = data.user.role === 'admin' ? 'Administrator 👑' : 'Standard User';
+        }
+
         authModal.classList.add('hidden');
         await fetchHistorySessions();
       } else {
@@ -342,6 +397,69 @@ document.addEventListener('DOMContentLoaded', () => {
     showLoginForm();
     authModal.classList.add('hidden');
     await fetchHistorySessions();
+  }
+
+  // ── ADMIN CONSOLE LOGIC (RBAC) ─────────────────────────────────────────────
+  if (openAdminConsoleBtn && adminDashboardModal) {
+    openAdminConsoleBtn.addEventListener('click', () => {
+      authModal.classList.add('hidden');
+      adminDashboardModal.classList.remove('hidden');
+      loadAdminDashboardData();
+    });
+  }
+
+  if (closeAdminModalBtn && adminDashboardModal) {
+    closeAdminModalBtn.addEventListener('click', () => {
+      adminDashboardModal.classList.add('hidden');
+    });
+  }
+
+  if (refreshAdminDataBtn) {
+    refreshAdminDataBtn.addEventListener('click', loadAdminDashboardData);
+  }
+
+  async function loadAdminDashboardData() {
+    if (!state.token) return;
+    try {
+      if (adminStatDb) adminStatDb.textContent = 'Querying telemetry...';
+      const [dashRes, usersRes] = await Promise.all([
+        authFetch('/api/auth/admin/dashboard'),
+        authFetch('/api/auth/admin/users')
+      ]);
+
+      if (dashRes.status === 403 || usersRes.status === 403) {
+        alert('Access Denied: 403 Forbidden. Your account does not have Admin privileges.');
+        adminDashboardModal.classList.add('hidden');
+        return;
+      }
+
+      const dashData = await dashRes.json();
+      const usersData = await usersRes.json();
+
+      if (dashData.success && dashData.system) {
+        if (adminStatDb) adminStatDb.textContent = dashData.system.database || 'Online';
+        if (adminStatUsers) adminStatUsers.textContent = dashData.system.totalRegisteredUsers ?? '0';
+        if (adminStatEnv) adminStatEnv.textContent = dashData.system.environment || 'development';
+      }
+
+      if (usersData.success && Array.isArray(usersData.users) && adminUsersTableBody) {
+        if (usersData.users.length === 0) {
+          adminUsersTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim)">No users found.</td></tr>';
+        } else {
+          adminUsersTableBody.innerHTML = usersData.users.map(u => `
+            <tr>
+              <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">${escHtml(u._id || u.id || '-')}</td>
+              <td><strong>${escHtml(u.name || 'Anonymous')}</strong></td>
+              <td>${escHtml(u.email || '-')}</td>
+              <td><span class="profile-role-badge ${u.role === 'admin' ? 'admin-role' : ''}">${u.role === 'admin' ? '👑 Admin' : 'Standard User'}</span></td>
+            </tr>
+          `).join('');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load admin telemetry:', err);
+      if (adminStatDb) adminStatDb.textContent = 'Telemetry Error';
+    }
   }
 
   // ── TAB SWITCHING ──────────────────────────────────────────────────────────
